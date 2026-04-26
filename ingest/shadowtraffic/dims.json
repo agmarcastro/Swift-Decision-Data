@@ -1,0 +1,213 @@
+{
+  "generators": [
+    {
+      "table": "dim_produto",
+      "row": {
+        "sku": {
+          "_gen": "string",
+          "expr": "SKU-#{Number.number_between '100000','999999'}"
+        },
+        "departamento": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 20, "value": "Computing" },
+            { "weight": 25, "value": "Telephony" },
+            { "weight": 15, "value": "TV/Audio" },
+            { "weight": 15, "value": "Gaming" },
+            { "weight": 15, "value": "Home Appliances" },
+            { "weight": 10, "value": "Printing" }
+          ]
+        },
+        "categoria": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 7,  "value": "notebook" },
+            { "weight": 7,  "value": "desktop" },
+            { "weight": 6,  "value": "monitor" },
+            { "weight": 8,  "value": "smartphone premium" },
+            { "weight": 9,  "value": "smartphone" },
+            { "weight": 8,  "value": "tablet" },
+            { "weight": 5,  "value": "smart tv" },
+            { "weight": 5,  "value": "bluetooth headphone" },
+            { "weight": 5,  "value": "soundbar" },
+            { "weight": 5,  "value": "console" },
+            { "weight": 5,  "value": "game" },
+            { "weight": 5,  "value": "headphone gaming" },
+            { "weight": 5,  "value": "refrigerator" },
+            { "weight": 5,  "value": "washing machine" },
+            { "weight": 5,  "value": "microwave" },
+            { "weight": 3,  "value": "printer" },
+            { "weight": 4,  "value": "ink" },
+            { "weight": 3,  "value": "multifunction printer" }
+          ]
+        },
+        "marca": {
+          "_gen": "oneOf",
+          "choices": [
+            "Samsung", "LG", "Apple", "Sony", "Dell", "Lenovo", "HP", "Asus",
+            "Acer", "Microsoft", "Motorola", "Xiaomi", "Philips", "Multilaser",
+            "Positivo", "Electrolux", "Brastemp", "Epson", "Canon", "Brother"
+          ]
+        },
+        "nome_produto": {
+          "_gen": "string",
+          "expr": "#{Commerce.product_name} #{Number.number_between '2020','2025'}"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 200,
+        "maxHistoryEvents": 200
+      }
+    },
+    {
+      "table": "dim_cliente",
+      "row": {
+        "categoria_clube_info": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 50, "value": "Bronze" },
+            { "weight": 30, "value": "Silver" },
+            { "weight": 20, "value": "Gold" }
+          ]
+        },
+        "estado": {
+          "_gen": "oneOf",
+          "choices": ["SP", "RJ", "MG", "BA", "RS", "PR", "SC", "DF", "CE", "PE"]
+        },
+        "cidade": {
+          "_gen": "oneOf",
+          "choices": [
+            "Sao Paulo", "Campinas", "Guarulhos", "Santo Andre", "Sao Bernardo do Campo",
+            "Rio de Janeiro", "Niteroi", "Duque de Caxias", "Nova Iguacu", "Petropolis",
+            "Belo Horizonte", "Uberlandia", "Contagem", "Juiz de Fora", "Montes Claros",
+            "Salvador", "Feira de Santana", "Vitoria da Conquista", "Camacari", "Ilheus",
+            "Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria",
+            "Curitiba", "Londrina", "Maringa", "Ponta Grossa", "Cascavel",
+            "Florianopolis", "Joinville", "Blumenau", "Sao Jose", "Criciuma",
+            "Brasilia", "Ceilandia", "Taguatinga", "Gama", "Planaltina",
+            "Fortaleza", "Caucaia", "Juazeiro do Norte", "Sobral", "Maracanau",
+            "Recife", "Caruaru", "Petrolina", "Olinda", "Paulista"
+          ]
+        },
+        "genero": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 45, "value": "M" },
+            { "weight": 45, "value": "F" },
+            { "weight": 10, "value": "NI" }
+          ]
+        },
+        "faixa_etaria": {
+          "_gen": "oneOf",
+          "choices": ["18-24", "25-34", "35-44", "45-54", "55+"]
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 1000,
+        "maxHistoryEvents": 1000
+      }
+    },
+    {
+      "table": "dim_loja",
+      "row": {
+        "nome_loja": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 5, "value": "Shopping Eldorado mall store" },
+            { "weight": 5, "value": "Shopping JK mall store" },
+            { "weight": 5, "value": "Shopping Ibirapuera mall store" },
+            { "weight": 5, "value": "Shopping Iguatemi SP mall store" },
+            { "weight": 5, "value": "Shopping Mueller mall store" },
+            { "weight": 5, "value": "Shopping Barigui mall store" },
+            { "weight": 5, "value": "Shopping Iguatemi RS mall store" },
+            { "weight": 5, "value": "Shopping Barra mall store" },
+            { "weight": 5, "value": "ParkShopping DF mall store" },
+            { "weight": 5, "value": "Shopping RioSul mall store" },
+            { "weight": 5, "value": "Paulista Street Store" },
+            { "weight": 5, "value": "Augusta Street Store" },
+            { "weight": 5, "value": "Ipanema Street Store" },
+            { "weight": 5, "value": "Savassi Street Store" },
+            { "weight": 5, "value": "Boa Viagem Street Store" },
+            { "weight": 5, "value": "Batel Street Store" },
+            { "weight": 5, "value": "Moinhos de Vento Street Store" },
+            { "weight": 5, "value": "Aldeota Street Store" },
+            { "weight": 5, "value": "Asa Sul Street Store" },
+            { "weight": 5, "value": "Pinheiros Street Store" }
+          ]
+        },
+        "regiao": {
+          "_gen": "oneOf",
+          "choices": ["Southeast", "South", "Northeast", "Midwest", "North"]
+        },
+        "gerente": {
+          "_gen": "string",
+          "expr": "#{Name.full_name}"
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 20,
+        "maxHistoryEvents": 20
+      }
+    },
+    {
+      "table": "dim_tempo",
+      "row": {
+        "data": {
+          "_gen": "formatDateTime",
+          "ms": {
+            "_gen": "sequentialInteger",
+            "startingFrom": 1704067200000,
+            "step": 86400000
+          },
+          "format": "yyyy-MM-dd"
+        },
+        "dia_semana": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 14, "value": "Monday" },
+            { "weight": 14, "value": "Tuesday" },
+            { "weight": 15, "value": "Wednesday" },
+            { "weight": 15, "value": "Thursday" },
+            { "weight": 15, "value": "Friday" },
+            { "weight": 14, "value": "Saturday" },
+            { "weight": 13, "value": "Sunday" }
+          ]
+        },
+        "mes": {
+          "_gen": "oneOf",
+          "choices": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        },
+        "ano": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 50, "value": 2024 },
+            { "weight": 50, "value": 2025 }
+          ]
+        },
+        "flg_feriado": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 967, "value": false },
+            { "weight": 33,  "value": true }
+          ]
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 730,
+        "maxHistoryEvents": 730
+      }
+    }
+  ],
+  "connections": {
+    "postgres": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "postgres",
+        "port": 5432,
+        "db": "infoagent",
+        "username": "infoagent_admin",
+        "password": "changeme"
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+anthropic:
+  model: claude-sonnet-4-6
+  max_tokens: 4096
+  temperature: 0.0
+
+mcp:
+  server_url: http://mcp-server:8080
+  timeout_seconds: 30
+
+qdrant:
+  host: qdrant
+  port: 6333
+  collection: infoagent_knowledge
+  top_k: 3
+
+shadowtraffic:
+  output_dir: /tmp/shadowtraffic
+  seed_counts:
+    fato_vendas: 100000
+    fato_estoque: 60000
+
+database:
+  host: postgres
+  port: 5432
+  name: infoagent
+  readonly_user: infoagent_readonly

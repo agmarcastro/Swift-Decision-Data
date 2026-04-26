@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "infoagent"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "psycopg2-binary>=2.9",
+    "anthropic>=0.28",
+    "langgraph>=0.1",
+    "langchain-anthropic>=0.1",
+    "llama-index>=0.10",
+    "llama-index-vector-stores-qdrant>=0.2",
+    "llama-index-embeddings-huggingface>=0.3",
+    "qdrant-client>=1.9",
+    "mcp>=1.0",
+    "chainlit>=1.1",
+    "pyyaml>=6.0",
+    "python-json-logger>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "testcontainers[postgres,qdrant]>=4.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["ingest", "contextualize", "agent", "ui"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
