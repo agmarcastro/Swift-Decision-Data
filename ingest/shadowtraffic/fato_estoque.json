@@ -1,0 +1,75 @@
+{
+  "generators": [
+    {
+      "table": "fato_estoque",
+      "vars": {
+        "prod": {
+          "_gen": "lookup",
+          "table": "dim_produto"
+        },
+        "loja": {
+          "_gen": "lookup",
+          "table": "dim_loja"
+        }
+      },
+      "row": {
+        "id_produto": {
+          "_gen": "var",
+          "var": "prod",
+          "path": ["row", "id_produto"]
+        },
+        "id_loja": {
+          "_gen": "var",
+          "var": "loja",
+          "path": ["row", "id_loja"]
+        },
+        "data_posicao": {
+          "_gen": "oneOf",
+          "choices": [
+            "2024-01-31", "2024-02-29", "2024-03-31",
+            "2024-04-30", "2024-05-31", "2024-06-30",
+            "2024-07-31", "2024-08-31", "2024-09-30",
+            "2024-10-31", "2024-11-30", "2024-12-31",
+            "2025-01-31", "2025-02-28", "2025-03-31",
+            "2025-04-30", "2025-05-31", "2025-06-30",
+            "2025-07-31", "2025-08-31", "2025-09-30",
+            "2025-10-31", "2025-11-30", "2025-12-31"
+          ]
+        },
+        "qtd_disponivel": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 10, "value": 0 },
+            { "weight": 15, "value": { "_gen": "uniformDistribution", "bounds": [1, 4] } },
+            { "weight": 50, "value": { "_gen": "uniformDistribution", "bounds": [5, 50] } },
+            { "weight": 25, "value": { "_gen": "uniformDistribution", "bounds": [51, 200] } }
+          ]
+        },
+        "qtd_transito": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 60, "value": 0 },
+            { "weight": 30, "value": { "_gen": "uniformDistribution", "bounds": [1, 20] } },
+            { "weight": 10, "value": { "_gen": "uniformDistribution", "bounds": [21, 50] } }
+          ]
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 60000,
+        "maxHistoryEvents": 60000
+      }
+    }
+  ],
+  "connections": {
+    "postgres": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "postgres",
+        "port": 5432,
+        "db": "infoagent",
+        "username": "infoagent_admin",
+        "password": "changeme"
+      }
+    }
+  }
+}

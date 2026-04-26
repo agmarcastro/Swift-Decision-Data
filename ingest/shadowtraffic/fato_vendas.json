@@ -1,0 +1,100 @@
+{
+  "generators": [
+    {
+      "table": "fato_vendas",
+      "vars": {
+        "prod": {
+          "_gen": "lookup",
+          "table": "dim_produto"
+        },
+        "cli": {
+          "_gen": "lookup",
+          "table": "dim_cliente"
+        },
+        "loja": {
+          "_gen": "lookup",
+          "table": "dim_loja"
+        },
+        "tempo": {
+          "_gen": "lookup",
+          "table": "dim_tempo"
+        },
+        "preco": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 20, "value": { "_gen": "uniformDistribution", "bounds": [1500.00, 8000.00] } },
+            { "weight": 25, "value": { "_gen": "uniformDistribution", "bounds": [800.00,  6000.00] } },
+            { "weight": 15, "value": { "_gen": "uniformDistribution", "bounds": [500.00,  4000.00] } },
+            { "weight": 15, "value": { "_gen": "uniformDistribution", "bounds": [200.00,  3000.00] } },
+            { "weight": 15, "value": { "_gen": "uniformDistribution", "bounds": [300.00,  2500.00] } },
+            { "weight": 10, "value": { "_gen": "uniformDistribution", "bounds": [200.00,  1500.00] } }
+          ]
+        }
+      },
+      "row": {
+        "id_produto": {
+          "_gen": "var",
+          "var": "prod",
+          "path": ["row", "id_produto"]
+        },
+        "id_cliente": {
+          "_gen": "var",
+          "var": "cli",
+          "path": ["row", "id_cliente"]
+        },
+        "id_loja": {
+          "_gen": "var",
+          "var": "loja",
+          "path": ["row", "id_loja"]
+        },
+        "id_tempo": {
+          "_gen": "var",
+          "var": "tempo",
+          "path": ["row", "id_tempo"]
+        },
+        "data_venda": {
+          "_gen": "var",
+          "var": "tempo",
+          "path": ["row", "data"]
+        },
+        "quantidade": 1,
+        "valor_unitario": {
+          "_gen": "var",
+          "var": "preco"
+        },
+        "valor_total": {
+          "_gen": "var",
+          "var": "preco"
+        },
+        "custo_total": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 20, "value": { "_gen": "uniformDistribution", "bounds": [900.00,  5600.00] } },
+            { "weight": 25, "value": { "_gen": "uniformDistribution", "bounds": [480.00,  4200.00] } },
+            { "weight": 15, "value": { "_gen": "uniformDistribution", "bounds": [300.00,  2800.00] } },
+            { "weight": 15, "value": { "_gen": "uniformDistribution", "bounds": [120.00,  2100.00] } },
+            { "weight": 15, "value": { "_gen": "uniformDistribution", "bounds": [180.00,  1750.00] } },
+            { "weight": 10, "value": { "_gen": "uniformDistribution", "bounds": [120.00,  1050.00] } }
+          ]
+        },
+        "valor_desconto": 0.00
+      },
+      "localConfigs": {
+        "maxEvents": 100000,
+        "maxHistoryEvents": 100000
+      }
+    }
+  ],
+  "connections": {
+    "postgres": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "postgres",
+        "port": 5432,
+        "db": "infoagent",
+        "username": "infoagent_admin",
+        "password": "changeme"
+      }
+    }
+  }
+}
