@@ -1,12 +1,13 @@
 # InfoAgent
 
-Welcome to **InfoAgent** — your real-time executive intelligence assistant.
+Bem-vindo(a) ao **InfoAgent** — seu assistente executivo de inteligência de varejo em tempo real.
 
-Ask any business question in natural language:
+Faça qualquer pergunta de negócio em linguagem natural:
 
-- *"What were the sales figures for yesterday?"*
-- *"What is the gross profit margin for Smartphones this week vs last week?"*
-- *"Is there a stockout risk for PlayStation 5 at our mall locations this weekend?"*
-- *"Which 5 stores had the lowest Notebook sales this quarter?"*
+- *"Qual foi o total de vendas ontem?"*
+- *"Qual é a margem bruta de Smartphones esta semana comparada à semana anterior?"*
+- *"Há risco de ruptura de estoque para PlayStation 5 nas lojas de shopping neste fim de semana?"*
+- *"Quais foram as 5 lojas com menor venda de Notebooks neste trimestre?"*
+- *"O giro de estoque nas lojas de shopping justifica o espaço em exposição? Qual é o sentimento dos clientes sobre esses produtos?"*
 
-InfoAgent will route your question to the right data source, generate a precise SQL query or retrieve the relevant business context, and show you exactly how it arrived at the answer.
+O InfoAgent roteia sua pergunta para a fonte de dados correta, gera uma consulta SQL precisa ou recupera o contexto de negócio relevante — e exibe cada etapa da resposta em tempo real.

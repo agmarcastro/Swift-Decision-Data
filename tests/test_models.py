@@ -12,6 +12,7 @@ from ingest.models import (
     ModeloDimTempo,
     ModeloFatoEstoque,
     ModeloFatoVendas,
+    ModeloReview,
 )
 
 
@@ -181,3 +182,53 @@ class TestModeloFatoEstoque:
     def test_zero_qtd_passes(self) -> None:
         record = ModeloFatoEstoque.model_validate({**self._VALID_BASE, "qtd_disponivel": 0})
         assert record.qtd_disponivel == 0
+
+
+# ---------------------------------------------------------------------------
+# ModeloReview
+# ---------------------------------------------------------------------------
+
+
+class TestModeloReview:
+    _VALID_BASE = {
+        "id_review": 1,
+        "id_produto": 10,
+        "id_cliente": 20,
+        "data_review": "2024-06-15",
+        "nota": 5,
+        "sentimento": "positivo",
+        "texto_review": "Produto excelente, chegou antes do prazo. Recomendo!",
+    }
+
+    def test_valid_record(self) -> None:
+        record = ModeloReview.model_validate(self._VALID_BASE)
+        assert record.nota == 5
+        assert record.sentimento == "positivo"
+
+    @pytest.mark.parametrize("nota", [1, 2, 3, 4, 5])
+    def test_valid_nota_range(self, nota: int) -> None:
+        record = ModeloReview.model_validate({**self._VALID_BASE, "nota": nota})
+        assert record.nota == nota
+
+    @pytest.mark.parametrize("nota", [0, 6, -1])
+    def test_invalid_nota_range_fails(self, nota: int) -> None:
+        with pytest.raises(ValidationError):
+            ModeloReview.model_validate({**self._VALID_BASE, "nota": nota})
+
+    @pytest.mark.parametrize("sentimento", ["positivo", "neutro", "negativo"])
+    def test_valid_sentimento(self, sentimento: str) -> None:
+        record = ModeloReview.model_validate({**self._VALID_BASE, "sentimento": sentimento})
+        assert record.sentimento == sentimento
+
+    def test_invalid_sentimento_fails(self) -> None:
+        with pytest.raises(ValidationError):
+            ModeloReview.model_validate({**self._VALID_BASE, "sentimento": "excelente"})
+
+    def test_texto_review_too_short_fails(self) -> None:
+        with pytest.raises(ValidationError):
+            ModeloReview.model_validate({**self._VALID_BASE, "texto_review": "Curto demais."})
+
+    def test_id_produto_is_int(self) -> None:
+        record = ModeloReview.model_validate(self._VALID_BASE)
+        assert isinstance(record.id_produto, int)
+        assert isinstance(record.id_cliente, int)

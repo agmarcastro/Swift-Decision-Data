@@ -4,6 +4,7 @@ from ingest.models.dim_produto import ModeloDimProduto, DepartamentoEnum
 from ingest.models.dim_cliente import ModeloDimCliente, CategoriaClienteEnum, GeneroEnum
 from ingest.models.dim_loja import ModeloDimLoja
 from ingest.models.dim_tempo import ModeloDimTempo
+from ingest.models.review import ModeloReview
 
 __all__ = [
     "ModeloFatoVendas",
@@ -15,4 +16,5 @@ __all__ = [
     "GeneroEnum",
     "ModeloDimLoja",
     "ModeloDimTempo",
+    "ModeloReview",
 ]

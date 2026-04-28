@@ -108,7 +108,7 @@ class TestValidateAllTables:
 
         results = validate_all_tables(conn)
 
-        assert len(results) == 6
+        assert len(results) == 7
 
     def test_validate_all_tables_result_keys(self, mock_pg_conn) -> None:
         conn, cursor = mock_pg_conn
@@ -133,5 +133,6 @@ class TestValidateAllTables:
             "dim_cliente",
             "dim_loja",
             "dim_tempo",
+            "reviews",
         }
         assert table_names == expected

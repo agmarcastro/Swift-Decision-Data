@@ -1,0 +1,38 @@
+analyst_task:
+  description: >
+    A pergunta do executivo é: "{question}".
+    Identifique a métrica numérica solicitada, escreva uma consulta SQL
+    SELECT contra o star schema e use a ferramenta sql_tool para executá-la.
+    Apresente o resultado bruto em JSON e uma interpretação em uma frase.
+  expected_output: >
+    Bloco JSON com as linhas retornadas + uma frase de interpretação em PT.
+    Se a pergunta não tiver componente numérico, responda exatamente:
+    "Nenhuma métrica numérica solicitada."
+  agent: analyst
+
+research_task:
+  description: >
+    A pergunta do executivo é: "{question}".
+    Use a ferramenta rag_tool para buscar reviews semanticamente
+    relevantes na coleção 'reviews' do Qdrant. Resuma o sentimento
+    predominante e cite 2-3 trechos de reviews que ilustram o ponto.
+  expected_output: >
+    Resumo qualitativo em PT (3-5 frases) + lista das citações usadas.
+    Se a pergunta não tiver componente de opinião, responda exatamente:
+    "Nenhuma opinião de cliente solicitada."
+  agent: researcher
+
+reporter_task:
+  description: >
+    A pergunta original do executivo é: "{question}".
+    Combine os achados quantitativos do Analista e qualitativos do
+    Pesquisador em uma resposta executiva única em português.
+    Estrutura: (1) Resposta direta em uma frase; (2) Números-chave;
+    (3) Voz do cliente (1-2 citações); (4) Recomendação acionável.
+  expected_output: >
+    Resposta executiva final em PT-BR (até 200 palavras), com seções
+    claramente marcadas em markdown.
+  agent: reporter
+  context:
+    - analyst_task
+    - research_task

@@ -16,6 +16,7 @@ from ingest.models import (
     ModeloDimLoja,
     ModeloDimTempo,
 )
+from ingest.models.review import ModeloReview
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ _TABLE_MODEL_MAP: dict[str, Type[BaseModel]] = {
     "dim_cliente": ModeloDimCliente,
     "dim_loja": ModeloDimLoja,
     "dim_tempo": ModeloDimTempo,
+    "reviews": ModeloReview,
 }
 
 _TABLE_PK_MAP: dict[str, str] = {
@@ -35,6 +37,7 @@ _TABLE_PK_MAP: dict[str, str] = {
     "dim_cliente": "id_cliente",
     "dim_loja": "id_loja",
     "dim_tempo": "id_tempo",
+    "reviews": "id_review",
 }
 
 

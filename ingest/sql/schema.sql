@@ -115,3 +115,23 @@ CREATE TABLE IF NOT EXISTS fato_estoque (
 );
 
 CREATE INDEX idx_fato_estoque_produto_loja ON fato_estoque(id_produto, id_loja, data_posicao);
+
+-- -----------------------------------------------------------------------------
+-- REVIEWS: Customer review fact-like table (synthetic via ShadowTraffic)
+-- Grain: one row per customer review of a product
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reviews (
+    id_review     SERIAL          PRIMARY KEY,
+    id_produto    INTEGER         NOT NULL REFERENCES dim_produto(id_produto),
+    id_cliente    INTEGER         NOT NULL REFERENCES dim_cliente(id_cliente),
+    data_review   DATE            NOT NULL,
+    nota          INTEGER         NOT NULL CHECK (nota BETWEEN 1 AND 5),
+    sentimento    VARCHAR(10)     NOT NULL
+                  CHECK (sentimento IN ('positivo', 'neutro', 'negativo')),
+    texto_review  TEXT            NOT NULL CHECK (length(texto_review) >= 20)
+);
+
+CREATE INDEX idx_reviews_produto    ON reviews(id_produto);
+CREATE INDEX idx_reviews_cliente    ON reviews(id_cliente);
+CREATE INDEX idx_reviews_data       ON reviews(data_review);
+CREATE INDEX idx_reviews_sentimento ON reviews(sentimento);

@@ -1,0 +1,13 @@
+Realiza busca semântica em duas coleções Qdrant:
+
+1. infoagent_knowledge — base de conhecimento interna:
+   - Definições e fórmulas de 10 KPIs de varejo (Margem Bruta, Giro de Estoque, NPS, etc.)
+   - Dicionário de dados com descrição de todas as colunas do data warehouse
+   - 13 exemplos de perguntas executivas com SQL correspondente
+
+2. reviews — avaliações sintéticas de clientes em português:
+   - Opiniões e reclamações sobre produtos, entrega e atendimento
+   - Sentimento classificado: positivo, neutro, negativo
+   - Vinculadas a produtos e categorias específicas
+
+Use esta ferramenta para: fórmulas de KPIs, definições de métricas, regras de negócio, sentimento de clientes, principais reclamações, avaliações por categoria de produto.
