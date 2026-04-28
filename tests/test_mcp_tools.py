@@ -82,15 +82,30 @@ class TestListTools:
 
 
 def _get_registered_handler(app):
-    """Return the raw call_tool coroutine registered on the MCP Server, or None."""
+    """Return a callable compatible with (name, arguments) for the MCP call_tool handler."""
     for attr in ("_tool_handler", "_call_tool_handler", "call_tool_handler"):
         handler = getattr(app, attr, None)
         if handler is not None:
             return handler
-    # Last resort: inspect request_handlers dict keyed by method name
+
+    # MCP 1.x stores the outer handler in request_handlers[CallToolRequest].
+    # Wrap it so callers can still use (name, arguments) semantics.
     for key, val in getattr(app, "request_handlers", {}).items():
-        if "tool" in str(key).lower():
-            return val
+        if "CallToolRequest" in str(key):
+            async def _compat(name: str, arguments: dict, _h=val):
+                from mcp.types import CallToolRequest, CallToolRequestParams
+
+                req = CallToolRequest(
+                    method="tools/call",
+                    params=CallToolRequestParams(name=name, arguments=arguments),
+                )
+                res = await _h(req)
+                if hasattr(res, "root") and getattr(res.root, "isError", False):
+                    raise ValueError(res.root.content[0].text)
+                return res
+
+            return _compat
+
     return None
 
 

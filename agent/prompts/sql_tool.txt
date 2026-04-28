@@ -1,0 +1,17 @@
+Executa uma consulta SQL SELECT somente-leitura no data warehouse PostgreSQL da rede de varejo.
+
+Esquema disponível (star schema):
+- fato_vendas: id_venda, id_produto, id_cliente, id_loja, id_tempo, data_venda, quantidade, valor_unitario, valor_total, custo_total, valor_desconto
+- fato_estoque: id_estoque, id_produto, id_loja, data_posicao, qtd_disponivel, qtd_transito
+- dim_produto: id_produto, sku, nome_produto, marca, departamento, categoria
+- dim_cliente: id_cliente, categoria_clube_info, estado, cidade, genero, faixa_etaria
+- dim_loja: id_loja, nome_loja, regiao, gerente
+- dim_tempo: id_tempo, data, dia_semana, mes, ano, flg_feriado
+- reviews: id_review, id_produto, id_cliente, data_review, nota, sentimento, texto_review
+
+Regras obrigatórias:
+- Apenas SELECT é permitido. INSERT, UPDATE, DELETE, DROP são bloqueados.
+- Retorna no máximo 500 linhas em JSON.
+- Use aliases claros em português nas colunas retornadas.
+
+Use esta ferramenta para: totais de vendas, ranking de produtos, análise de estoque, cálculo de margens, comparativos por período, loja ou região.

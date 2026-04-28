@@ -1,0 +1,141 @@
+{
+  "generators": [
+    {
+      "table": "reviews",
+      "vars": {
+        "prod":   { "_gen": "lookup", "table": "dim_produto" },
+        "cli":    { "_gen": "lookup", "table": "dim_cliente" },
+        "tempo":  { "_gen": "lookup", "table": "dim_tempo" },
+        "rating": {
+          "_gen": "weightedOneOf",
+          "choices": [
+            { "weight": 50, "value": 5 },
+            { "weight": 25, "value": 4 },
+            { "weight": 10, "value": 3 },
+            { "weight": 8,  "value": 2 },
+            { "weight": 7,  "value": 1 }
+          ]
+        },
+        "positivo": {
+          "_gen": "oneOf",
+          "choices": [
+            "Produto excelente, chegou antes do prazo. Recomendo a todos!",
+            "Qualidade impecável, superou minhas expectativas. Ótima compra.",
+            "Atendimento da loja foi nota 10, voltarei a comprar com certeza.",
+            "Entrega rápida e produto muito bem embalado. Adorei!",
+            "Custo-benefício imbatível para quem procura qualidade e preço.",
+            "Funcionamento perfeito desde o primeiro uso. Muito satisfeito.",
+            "Produto idêntico à descrição, chegou dentro do prazo. Aprovado!",
+            "Loja muito organizada e atendimento excelente. Recomendo!",
+            "Superou todas as expectativas. O melhor produto que já comprei.",
+            "Bateria dura o dia todo. Exatamente o que eu precisava.",
+            "Embalagem cuidadosa e produto em perfeitas condições. Parabéns!",
+            "O produto chegou antes do prazo previsto. Ótima experiência!",
+            "Qualidade premium a um preço justo. Vale cada centavo.",
+            "Recomendo muito, produto de primeira linha. Comprarei de novo.",
+            "Instalação simples, manual bem explicado. Funcionou de imediato.",
+            "Atendimento pós-venda excelente, resolveram meu problema rapidamente.",
+            "A loja é organizada, fácil de encontrar tudo. Muito satisfeito.",
+            "Produto resistente, durável e bonito. Superou minhas expectativas.",
+            "Promoção incrível e qualidade garantida. Muito feliz com a compra.",
+            "Ótima relação qualidade/preço. Sem dúvida voltarei a comprar."
+          ]
+        },
+        "neutro": {
+          "_gen": "oneOf",
+          "choices": [
+            "Produto cumpre o que promete, sem grandes surpresas.",
+            "Entrega no prazo combinado. Funcionalidade básica satisfatória.",
+            "Atende o uso diário, mas o manual poderia ser mais claro.",
+            "Qualidade razoável para o preço pago. Nada excepcional.",
+            "Produto funcional, mas a embalagem poderia ser melhor.",
+            "Chegou no prazo, mas a instalação foi um pouco trabalhosa.",
+            "Desempenho médio, cumpre o básico sem se destacar.",
+            "Produto ok, mas esperava acabamento melhor para o valor pago.",
+            "Funciona bem dentro das especificações básicas anunciadas.",
+            "Atendimento adequado, sem problemas mas também sem destaque.",
+            "O produto é simples e direto. Faz o que promete sem mais.",
+            "Entrega foi no prazo, mas o produto veio sem acessório prometido.",
+            "Qualidade satisfatória para uso esporádico. Para o dia a dia basta.",
+            "Loja razoável, mas poderia ter mais variedade no estoque.",
+            "Produto funcional, desempenho dentro do esperado para a categoria.",
+            "Nada especial, mas cumpre sua função. Sem reclamações graves.",
+            "Atendimento mediano, demorou um pouco para me atender.",
+            "Produto com acabamento simples. Funciona, mas não impressiona.",
+            "Compra tranquila, produto chegou corretamente. Experiência neutra.",
+            "O produto é básico, adequado para o uso pretendido."
+          ]
+        },
+        "negativo": {
+          "_gen": "oneOf",
+          "choices": [
+            "Entrega atrasou duas semanas e o produto chegou com embalagem amassada.",
+            "Defeito no primeiro uso — solicitei troca e demoraram vários dias.",
+            "Bateria muito abaixo do anunciado. Extremamente decepcionante.",
+            "Atendimento pós-venda foi péssimo, não recomendo esta loja.",
+            "Embalagem chegou violada e faltavam acessórios incluídos.",
+            "Produto parou de funcionar após 3 dias. Qualidade péssima.",
+            "Totalmente diferente do anunciado. Fui enganado pela descrição.",
+            "Prazo de entrega absurdo, produto chegou danificado por descuido.",
+            "Suporte ao cliente não resolve nada, só transfere a ligação.",
+            "Material muito inferior ao esperado para o preço cobrado.",
+            "Produto com defeito de fábrica, tive que devolver imediatamente.",
+            "Propaganda enganosa, o produto não tem as funções anunciadas.",
+            "Loja não cumpre o prazo prometido e não avisa o cliente.",
+            "Produto para de funcionar na primeira semana. Péssima durabilidade.",
+            "Atendimento rude e sem solução. Não compro mais nesta loja.",
+            "Devolução complicada, processo burocrático e demorado.",
+            "Produto chegou sem manual em português. Instalação impossível.",
+            "Cobrado a mais no cartão e tive dificuldade para estornar o valor.",
+            "Cheiro forte de produto químico ao abrir a caixa. Inaceitável.",
+            "Produto não conecta conforme prometido. Suporte ignorou meu chamado."
+          ]
+        }
+      },
+      "row": {
+        "id_produto":  { "_gen": "var", "var": "prod",  "path": ["row", "id_produto"] },
+        "id_cliente":  { "_gen": "var", "var": "cli",   "path": ["row", "id_cliente"] },
+        "data_review": { "_gen": "var", "var": "tempo", "path": ["row", "data"] },
+        "nota":        { "_gen": "var", "var": "rating" },
+        "sentimento": {
+          "_gen": "switch",
+          "on": { "_gen": "var", "var": "rating" },
+          "cases": {
+            "5": "positivo",
+            "4": "positivo",
+            "3": "neutro",
+            "2": "negativo",
+            "1": "negativo"
+          }
+        },
+        "texto_review": {
+          "_gen": "switch",
+          "on": { "_gen": "var", "var": "rating" },
+          "cases": {
+            "5": { "_gen": "var", "var": "positivo" },
+            "4": { "_gen": "var", "var": "positivo" },
+            "3": { "_gen": "var", "var": "neutro" },
+            "2": { "_gen": "var", "var": "negativo" },
+            "1": { "_gen": "var", "var": "negativo" }
+          }
+        }
+      },
+      "localConfigs": {
+        "maxEvents": 12000,
+        "maxHistoryEvents": 12000
+      }
+    }
+  ],
+  "connections": {
+    "postgres": {
+      "kind": "postgres",
+      "connectionConfigs": {
+        "host": "postgres",
+        "port": 5432,
+        "db": "infoagent",
+        "username": "infoagent_admin",
+        "password": "changeme"
+      }
+    }
+  }
+}

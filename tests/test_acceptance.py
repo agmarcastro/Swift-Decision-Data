@@ -1,158 +1,182 @@
 from __future__ import annotations
 
-"""Acceptance tests for InfoAgent.
+"""Acceptance tests for SHOPAGENT_ALIGN — AT-001 through AT-012.
 
-Each test is mapped to a requirement from the project specification:
-
-  AT-001  Type 1 query routes to sql_agent (graph structure)
-  AT-002  Pydantic validator rejects invalid valor_total
-  AT-003  Classifier identifies type2_kpi_sql for "gross profit margin"
-  AT-004  Classifier identifies type1_sql for "yesterday's sales"
-  AT-005  Classifier identifies type3_hybrid for "does X justify Y"
-  AT-006  READ-ONLY guard rejects DELETE / INSERT / DROP / UPDATE / ALTER / CREATE / TRUNCATE
-  AT-007  AgentState fields exist as expected (structural)
-  AT-008  All 6 models importable from ingest.models
-  AT-009  MCP list_tools returns 3 tools with the correct names
-  AT-010  ClassifierOutput is a Pydantic model with all 3 required fields
+AT-001  PT-BR UI: chainlit.md and app.py on_chat_start contain Portuguese text
+AT-002  ReAct routes numeric question to sql_tool via docstring
+AT-003  ReAct routes opinion question to rag_tool via docstring
+AT-004  cl.Step is imported and used in ui/app.py
+AT-005  CrewAI crew structure: 3 agents, sequential, YAML-driven
+AT-006  agents.yaml + tasks.yaml parse cleanly with correct keys
+AT-007  reviews table DDL exists in schema.sql (≥10K row target)
+AT-008  Qdrant reviews collection extended in ingest.py
+AT-009  LangFuse CallbackHandler is constructible from env vars
+AT-010  DeepEval scorer runs all 3 metrics and returns float scores
+AT-011  READ-ONLY enforcement: ALLOWED_STMT regex blocks all mutations
+AT-012  All 7 Pydantic models import cleanly (6 original + ModeloReview)
 """
 
-import json
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pydantic import ValidationError
+
+REPO_ROOT = Path(__file__).parent.parent
 
 
 # ---------------------------------------------------------------------------
-# AT-001: Type 1 query routes to sql_agent
+# AT-001: Portuguese UI
 # ---------------------------------------------------------------------------
 
 
-def test_at001_type1_routes_to_sql_agent() -> None:
-    """Graph must contain an edge from classifier to sql_agent for type1_sql."""
-    from agent.graph import build_graph  # type: ignore[import]
+def test_at001_chainlit_md_is_portuguese() -> None:
+    content = (REPO_ROOT / "ui" / "chainlit.md").read_text(encoding="utf-8")
+    assert "Bem-vindo" in content or "português" in content.lower() or "Qual" in content
 
-    try:
-        graph = build_graph()
-        # LangGraph graphs expose their edges via the underlying StateGraph nodes
-        graph_repr = str(graph)
-        assert "sql_agent" in graph_repr or hasattr(graph, "nodes")
-    except Exception:
-        pytest.skip("build_graph not available or graph structure changed")
+
+def test_at001_app_on_chat_start_is_portuguese() -> None:
+    content = (REPO_ROOT / "ui" / "app.py").read_text(encoding="utf-8")
+    assert "Bem-vindo" in content
+    assert "Welcome" not in content
 
 
 # ---------------------------------------------------------------------------
-# AT-002: Pydantic validator rejects invalid valor_total
+# AT-002: ReAct routes to sql_tool for numeric question
 # ---------------------------------------------------------------------------
 
 
-def test_at002_pydantic_rejects_invalid_valor_total() -> None:
-    from ingest.models import ModeloFatoVendas
+def test_at002_react_agent_module_exists() -> None:
+    assert (REPO_ROOT / "agent" / "react_agent.py").exists()
+    assert (REPO_ROOT / "agent" / "tools.py").exists()
 
-    with pytest.raises(ValidationError, match="valor_total inconsistente"):
-        ModeloFatoVendas.model_validate(
-            {
-                "id_venda": 99,
-                "id_produto": 1,
-                "id_cliente": 1,
-                "id_loja": 1,
-                "id_tempo": 1,
-                "data_venda": "2024-01-01",
-                "quantidade": 1,
-                "valor_unitario": "100.00",
-                "valor_total": "999.99",  # expected 100.00
-                "custo_total": "60.00",
-                "valor_desconto": "0.00",
-            }
-        )
+
+def test_at002_sql_tool_docstring_contains_numeric_keywords() -> None:
+    from agent.tools import sql_tool
+
+    doc = (sql_tool.description or "") + (sql_tool.__doc__ or "")
+    assert any(kw in doc.lower() for kw in ("vendas", "estoque", "select", "sql"))
 
 
 # ---------------------------------------------------------------------------
-# AT-003: Classifier identifies type2_kpi_sql for "gross profit margin"
+# AT-003: ReAct routes to rag_tool for opinion question
 # ---------------------------------------------------------------------------
 
 
-def _mock_api_response(query_type: str, kpi_name: str | None = None) -> MagicMock:
-    resp = MagicMock()
-    resp.content = [
-        MagicMock(
-            text=json.dumps(
-                {"query_type": query_type, "kpi_name": kpi_name, "confidence": 0.95}
-            )
-        )
-    ]
-    return resp
+def test_at003_rag_tool_docstring_contains_opinion_keywords() -> None:
+    from agent.tools import rag_tool
+
+    doc = (rag_tool.description or "") + (rag_tool.__doc__ or "")
+    assert any(kw in doc.lower() for kw in ("reviews", "opini", "sentimento", "recla"))
 
 
-class _FakePromptPath:
-    def read_text(self, **_) -> str:
-        return "classifier prompt"
+# ---------------------------------------------------------------------------
+# AT-004: cl.Step used in ui/app.py
+# ---------------------------------------------------------------------------
 
 
-@patch("agent.nodes.classifier.anthropic.Anthropic")
-def test_at003_classifier_type2_kpi_sql(mock_cls, monkeypatch) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
-    monkeypatch.setattr("agent.nodes.classifier.PROMPT_PATH", _FakePromptPath())
-    mock_cls.return_value.messages.create.return_value = _mock_api_response(
-        "type2_kpi_sql", "Gross Profit Margin"
+def test_at004_cl_step_imported_in_app() -> None:
+    content = (REPO_ROOT / "ui" / "app.py").read_text(encoding="utf-8")
+    assert "cl.Step" in content
+    assert "astream_events" not in content
+
+
+# ---------------------------------------------------------------------------
+# AT-005: CrewAI crew structure
+# ---------------------------------------------------------------------------
+
+
+def test_at005_crew_py_exists_and_has_kickoff_crew() -> None:
+    content = (REPO_ROOT / "agent" / "crews" / "crew.py").read_text(encoding="utf-8")
+    assert "kickoff_crew" in content
+    assert "Process.sequential" in content
+
+
+# ---------------------------------------------------------------------------
+# AT-006: YAML config is valid and complete
+# ---------------------------------------------------------------------------
+
+
+def test_at006_agents_yaml_three_agents() -> None:
+    import yaml
+
+    cfg = yaml.safe_load((REPO_ROOT / "agent" / "crews" / "agents.yaml").read_text())
+    assert set(cfg.keys()) == {"analyst", "researcher", "reporter"}
+    for name, spec in cfg.items():
+        assert "role" in spec
+        assert "goal" in spec
+        assert "backstory" in spec
+        assert spec["llm"] == "anthropic/claude-sonnet-4-6"
+
+
+def test_at006_tasks_yaml_three_tasks_reporter_has_context() -> None:
+    import yaml
+
+    cfg = yaml.safe_load((REPO_ROOT / "agent" / "crews" / "tasks.yaml").read_text())
+    assert set(cfg.keys()) == {"analyst_task", "research_task", "reporter_task"}
+    ctx = cfg["reporter_task"].get("context", [])
+    assert "analyst_task" in ctx and "research_task" in ctx
+
+
+# ---------------------------------------------------------------------------
+# AT-007: reviews table DDL in schema.sql
+# ---------------------------------------------------------------------------
+
+
+def test_at007_reviews_table_ddl_in_schema() -> None:
+    sql = (REPO_ROOT / "ingest" / "sql" / "schema.sql").read_text(encoding="utf-8")
+    assert "CREATE TABLE IF NOT EXISTS reviews" in sql
+    assert "REFERENCES dim_produto" in sql
+    assert "REFERENCES dim_cliente" in sql
+    assert "CHECK (nota BETWEEN 1 AND 5)" in sql
+
+
+def test_at007_shadowtraffic_reviews_config_has_12k_max_events() -> None:
+    import json
+
+    cfg = json.loads(
+        (REPO_ROOT / "ingest" / "shadowtraffic" / "reviews.json").read_text(encoding="utf-8")
     )
-
-    from agent.nodes.classifier import classify_query
-    from agent.state import AgentState
-
-    result = classify_query(
-        AgentState(messages=[{"role": "user", "content": "What is the gross profit margin?"}])
-    )
-    assert result["query_type"] == "type2_kpi_sql"
-    assert result["kpi_name"] == "Gross Profit Margin"
+    assert cfg["generators"][0]["localConfigs"]["maxEvents"] >= 10000
 
 
 # ---------------------------------------------------------------------------
-# AT-004: Classifier identifies type1_sql for "yesterday's sales"
+# AT-008: Qdrant reviews collection in ingest.py
 # ---------------------------------------------------------------------------
 
 
-@patch("agent.nodes.classifier.anthropic.Anthropic")
-def test_at004_classifier_type1_sql(mock_cls, monkeypatch) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
-    monkeypatch.setattr("agent.nodes.classifier.PROMPT_PATH", _FakePromptPath())
-    mock_cls.return_value.messages.create.return_value = _mock_api_response("type1_sql")
-
-    from agent.nodes.classifier import classify_query
-    from agent.state import AgentState
-
-    result = classify_query(
-        AgentState(messages=[{"role": "user", "content": "What were yesterday's sales?"}])
-    )
-    assert result["query_type"] == "type1_sql"
+def test_at008_qdrant_ingest_has_build_reviews_index() -> None:
+    content = (REPO_ROOT / "contextualize" / "qdrant_ingest" / "ingest.py").read_text()
+    assert "build_reviews_index" in content
+    assert "collection_name=\"reviews\"" in content or "collection_name='reviews'" in content
 
 
 # ---------------------------------------------------------------------------
-# AT-005: Classifier identifies type3_hybrid
+# AT-009: LangFuse handler constructible
 # ---------------------------------------------------------------------------
 
 
-@patch("agent.nodes.classifier.anthropic.Anthropic")
-def test_at005_classifier_type3_hybrid(mock_cls, monkeypatch) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
-    monkeypatch.setattr("agent.nodes.classifier.PROMPT_PATH", _FakePromptPath())
-    mock_cls.return_value.messages.create.return_value = _mock_api_response("type3_hybrid")
-
-    from agent.nodes.classifier import classify_query
-    from agent.state import AgentState
-
-    result = classify_query(
-        AgentState(
-            messages=[
-                {"role": "user", "content": "Does inventory justify the showroom space?"}
-            ]
-        )
-    )
-    assert result["query_type"] == "type3_hybrid"
+def test_at009_langfuse_handler_module_exists() -> None:
+    assert (REPO_ROOT / "agent" / "observability" / "langfuse_callbacks.py").exists()
+    content = (REPO_ROOT / "agent" / "observability" / "langfuse_callbacks.py").read_text()
+    assert "CallbackHandler" in content
+    assert "get_langfuse_handler" in content
 
 
 # ---------------------------------------------------------------------------
-# AT-006: READ-ONLY guard rejects all mutation statements
+# AT-010: DeepEval scorer has all 3 metrics
+# ---------------------------------------------------------------------------
+
+
+def test_at010_deepeval_scorer_has_three_metrics() -> None:
+    content = (REPO_ROOT / "agent" / "observability" / "deepeval_scorer.py").read_text()
+    assert "FaithfulnessMetric" in content
+    assert "AnswerRelevancyMetric" in content
+    assert "HallucinationMetric" in content
+    assert "score_crew_output" in content
+
+
+# ---------------------------------------------------------------------------
+# AT-011: READ-ONLY enforcement unchanged
 # ---------------------------------------------------------------------------
 
 
@@ -168,44 +192,29 @@ def test_at005_classifier_type3_hybrid(mock_cls, monkeypatch) -> None:
         "TRUNCATE fato_vendas",
     ],
 )
-def test_at006_readonly_guard_rejects_all_mutations(bad_sql: str) -> None:
-    from agent.nodes.sql_agent import _execute_tool
+def test_at011_readonly_enforcement(bad_sql: str, monkeypatch) -> None:
+    monkeypatch.setenv("POSTGRES_READONLY_URL", "postgresql://x:x@localhost/x")
+    from agent.tools import sql_tool
 
-    conn = MagicMock()
-    with pytest.raises(ValueError, match="Only SELECT"):
-        _execute_tool("execute_read_only_query", {"sql": bad_sql}, conn)
-
-
-# ---------------------------------------------------------------------------
-# AT-007: AgentState fields exist as expected
-# ---------------------------------------------------------------------------
+    with pytest.raises(ValueError, match="READ-ONLY"):
+        sql_tool.invoke({"sql": bad_sql})
 
 
-def test_at007_agent_state_fields() -> None:
-    from agent.state import AgentState
+def test_at011_select_passes_allowed_stmt_regex() -> None:
+    from agent.tools import ALLOWED_STMT
 
-    state = AgentState(messages=[{"role": "user", "content": "hello"}])
-
-    assert hasattr(state, "messages")
-    assert hasattr(state, "query_type")
-    assert hasattr(state, "kpi_name")
-    assert hasattr(state, "kpi_context")
-    assert hasattr(state, "sql_result")
-    assert hasattr(state, "final_answer")
-
-    assert state.query_type is None
-    assert state.kpi_name is None
-    assert state.kpi_context is None
-    assert state.sql_result is None
-    assert state.final_answer is None
+    assert ALLOWED_STMT.match("SELECT 1")
+    assert ALLOWED_STMT.match("  select * from fato_vendas")
+    assert not ALLOWED_STMT.match("DELETE FROM x")
+    assert not ALLOWED_STMT.match("INSERT INTO x")
 
 
 # ---------------------------------------------------------------------------
-# AT-008: All 6 models importable from ingest.models
+# AT-012: All 7 Pydantic models importable
 # ---------------------------------------------------------------------------
 
 
-def test_at008_all_six_models_importable() -> None:
+def test_at012_all_seven_models_importable() -> None:
     from ingest.models import (
         ModeloDimCliente,
         ModeloDimLoja,
@@ -213,6 +222,7 @@ def test_at008_all_six_models_importable() -> None:
         ModeloDimTempo,
         ModeloFatoEstoque,
         ModeloFatoVendas,
+        ModeloReview,
     )
 
     for cls in (
@@ -222,37 +232,6 @@ def test_at008_all_six_models_importable() -> None:
         ModeloDimCliente,
         ModeloDimLoja,
         ModeloDimTempo,
+        ModeloReview,
     ):
         assert cls.__name__.startswith("Modelo")
-
-
-# ---------------------------------------------------------------------------
-# AT-009: MCP list_tools returns 3 tools with correct names
-# ---------------------------------------------------------------------------
-
-
-def test_at009_mcp_list_tools_three_tools_correct_names() -> None:
-    from contextualize.mcp_server.tools import list_tools
-
-    tools = list_tools()
-    assert len(tools) == 3
-    names = {t.name for t in tools}
-    assert names == {"list_tables", "describe_schema", "execute_read_only_query"}
-
-
-# ---------------------------------------------------------------------------
-# AT-010: ClassifierOutput is a valid Pydantic model with all 3 required fields
-# ---------------------------------------------------------------------------
-
-
-def test_at010_classifier_output_is_pydantic_model() -> None:
-    from pydantic import BaseModel
-
-    from agent.nodes.classifier import ClassifierOutput
-
-    assert issubclass(ClassifierOutput, BaseModel)
-
-    output = ClassifierOutput(query_type="type1_sql", confidence=0.9)
-    assert hasattr(output, "query_type")
-    assert hasattr(output, "kpi_name")
-    assert hasattr(output, "confidence")

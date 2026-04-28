@@ -212,6 +212,58 @@ def build_index() -> VectorStoreIndex:
     return index
 
 
+def build_reviews_index():
+    """Embed PostgreSQL reviews.texto_review rows into Qdrant collection 'reviews'."""
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    from llama_index.core import Document
+
+    Settings.embed_model = HuggingFaceEmbedding(model_name=EMBEDDING_MODEL)
+    Settings.llm = None
+
+    host = os.environ.get("QDRANT_HOST", "qdrant")
+    port = int(os.environ.get("QDRANT_PORT", "6333"))
+    client = _get_qdrant_client(host, port)
+    _ensure_collection(client, "reviews")
+
+    pg_url = os.environ["POSTGRES_ADMIN_URL"]
+    docs: list[Document] = []
+    with psycopg2.connect(pg_url) as conn, conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            """
+            SELECT r.id_review, r.id_produto, r.id_cliente, r.nota, r.sentimento,
+                   r.texto_review, p.nome_produto, p.marca, p.categoria
+            FROM reviews r
+            JOIN dim_produto p ON p.id_produto = r.id_produto
+            """
+        )
+        for row in cur:
+            docs.append(
+                Document(
+                    text=row["texto_review"],
+                    metadata={
+                        "doc_type": "review",
+                        "id_review": row["id_review"],
+                        "id_produto": row["id_produto"],
+                        "nota": row["nota"],
+                        "sentimento": row["sentimento"],
+                        "produto": row["nome_produto"],
+                        "marca": row["marca"],
+                        "categoria": row["categoria"],
+                    },
+                )
+            )
+
+    if not docs:
+        logger.warning("reviews table is empty — skipping reviews index build")
+        return None
+
+    vector_store = QdrantVectorStore(client=client, collection_name="reviews")
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+    logger.info("Embedding %d review documents into collection 'reviews'...", len(docs))
+    return VectorStoreIndex.from_documents(docs, storage_context=storage_context, show_progress=True)
+
+
 # ---------------------------------------------------------------------------
 # CLI entry-point
 # ---------------------------------------------------------------------------
@@ -244,6 +296,11 @@ def main() -> None:
         "Indexed knowledge types: "
         + ", ".join(KNOWLEDGE_FILES.keys())
     )
+
+    print("-" * 60)
+    print("Building reviews collection...")
+    build_reviews_index()
+    print("Reviews collection ready.")
 
 
 if __name__ == "__main__":
